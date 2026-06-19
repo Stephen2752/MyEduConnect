@@ -9,38 +9,38 @@ if(!isset($_SESSION['admin_id']))
 
 include '../config/db.php';
 
-$result=
-$conn->query(
-"SELECT * FROM courses"
+$result=$conn->query(
+"SELECT * FROM users"
 );
 ?>
 
-<h2>Courses</h2>
+<h2>Users</h2>
 
 <table border="1">
 
 <tr>
 <th>ID</th>
-<th>Course</th>
-<th>Description</th>
-<th>Fee</th>
+<th>Username</th>
+<th>Email</th>
+<th>Role</th>
+
 </tr>
 
 <?php
-
 while($row=$result->fetch_assoc())
 {
 ?>
-
 <tr>
 
 <td><?php echo $row['id']; ?></td>
 
-<td><?php echo $row['title']; ?></td>
+<td><?php echo $row['username']; ?></td>
 
-<td><?php echo $row['description']; ?></td>
+<td><?php echo $row['email']; ?></td>
 
-<td>RM <?php echo $row['fee']; ?></td>
+<td><?php echo $row['role']; ?></td>
+
+
 
 </tr>
 

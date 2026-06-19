@@ -1,106 +1,66 @@
 <?php
-
-session_set_cookie_params([
-    'lifetime'=> 0,
-    'path'=> '/',
-    'secure'=> true,
-    'httponly' => true,
-    'samesite' => 'Strict'
-]);
-
 session_start();
-include 'config/db.php';
+include '../config/db.php';
 
 if(isset($_POST['login']))
 {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username=$_POST['username'];
+    $password=$_POST['password'];
 
-    $stmt = $conn->prepare(
-        "SELECT * FROM users
-         WHERE username=?"
+    $stmt=$conn->prepare(
+    "SELECT * FROM users
+    WHERE username=? AND role='admin'"
     );
 
-    $stmt->bind_param(
-        "s",
-        $username
-    );
-
+    $stmt->bind_param("s",$username);
     $stmt->execute();
 
-    $result = $stmt->get_result();
+    $result=$stmt->get_result();
 
-    if($user = $result->fetch_assoc())
+    if($result->num_rows>0)
     {
-        // Account locked
-        if($user['failed_attempts'] >= 5)
-        {
-            die("Account Locked");
-        }
+        $admin=$result->fetch_assoc();
 
         if(password_verify(
             $password,
-            $user['password']
+            $admin['password']
         ))
         {
-            // Reset counter
-            $reset = $conn->prepare(
-                "UPDATE users
-                 SET failed_attempts=0
-                 WHERE id=?"
-            );
+            $_SESSION['admin_id']=$admin['id'];
+            $_SESSION['admin_name']=$admin['username'];
 
-            $reset->bind_param(
-                "i",
-                $user['id']
-            );
-
-            $reset->execute();
-
-            session_regenerate_id(true);
-
-            $_SESSION['user_id']=$user['id'];
-
-            header("Location: profile.php");
+            header("Location: dashboard.php");
             exit();
         }
-        else
-        {
-            // Increase counter
-            $newAttempts =
-            $user['failed_attempts'] + 1;
-
-            $update = $conn->prepare(
-                "UPDATE users
-                 SET failed_attempts=?
-                 WHERE id=?"
-            );
-
-            $update->bind_param(
-                "ii",
-                $newAttempts,
-                $user['id']
-            );
-
-            $update->execute();
-
-            echo "Invalid password";
-        }
     }
-    else
-    {
-        echo "User not found";
-    }
+
+    $error="Invalid Login";
 }
 ?>
 
-<form method="post">
-Username:
-<input name="username">
+<h2>Admin Login</h2>
+
+<?php
+if(isset($error))
+{
+    echo $error;
+}
+?>
+
+<form method="POST">
+
+Username
+
+<br>
+
+<input type="text" name="username">
 
 <br><br>
 
-Password:
+Password
+
+<br>
+
 <input type="password" name="password">
 
 <br><br>
@@ -108,4 +68,5 @@ Password:
 <button name="login">
 Login
 </button>
+
 </form>
